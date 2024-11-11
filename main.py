@@ -41,7 +41,7 @@ class SimCLR(nn.Module):
     def __init__(self, encoder, projection_dim=128):
         super(SimCLR, self).__init__()
         self.encoder = encoder
-        self.encoder.fc = nn.Identity()  # Remove the original classification layer
+        self.encoder.fc = nn.Identity()  # Verwijder classificatie laag
         self.projection_head = ProjectionHead(input_dim=512, output_dim=projection_dim)
 
     def forward(self, x):
