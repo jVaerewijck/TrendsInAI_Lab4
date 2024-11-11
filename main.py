@@ -7,10 +7,10 @@ from torch.utils.data import DataLoader, Dataset
 import numpy as np
 import torchvision
 
-print(torch.cuda.is_available())  # Should return True if CUDA is enabled
-print(torch.cuda.current_device())  # Shows the current GPU device if available
+print(torch.cuda.is_available())  # Geeft True als cuda werkt
+print(torch.cuda.current_device())  # Geeft de naam van de gpu als die gevonden kan worden(meestal 0)
 
-# Define a simple augmentation pipeline
+# Data augmentatie
 class SimCLRAugmentation:
     def __init__(self, size=224):
         self.transform = transforms.Compose([
@@ -21,7 +21,7 @@ class SimCLRAugmentation:
         ])
 
     def __call__(self, x):
-        return self.transform(x), self.transform(x)  # Two different augmentations
+        return self.transform(x), self.transform(x)
 
 # SimCLR projection head
 class ProjectionHead(nn.Module):
@@ -36,7 +36,7 @@ class ProjectionHead(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-# Define the SimCLR model
+# SimCLR model
 class SimCLR(nn.Module):
     def __init__(self, encoder, projection_dim=128):
         super(SimCLR, self).__init__()
@@ -49,7 +49,7 @@ class SimCLR(nn.Module):
         z = self.projection_head(h)
         return z
 
-# NT-Xent Loss for SimCLR
+# NT-Xent Loss van SimCLR
 class NTXentLoss(nn.Module):
     def __init__(self, temperature=0.5):
         super(NTXentLoss, self).__init__()
@@ -71,7 +71,7 @@ class NTXentLoss(nn.Module):
         loss = -torch.log(positive_pairs.exp() / negative_pairs)
         return loss.mean()
 
-# Training function
+# Training functie
 def train(model, data_loader, criterion, optimizer, epochs=5):
     model.train()
     for epoch in range(epochs):
@@ -110,13 +110,12 @@ class CustomDataset(Dataset):
     def __len__(self):
         return len(self.dataset)
 
-# Main
 if __name__ == "__main__":
-    # Load a pretrained ResNet model as the encoder
+    # Pretrained ResNet model als encoder
     encoder = models.resnet18(pretrained=True)
     model = SimCLR(encoder).cuda()
     
-    # CIFAR-10 dataset with SimCLR-style augmentations
+    # CIFAR-10 transformatie
     transform = SimCLRAugmentation()
     train_dataset = CustomDataset(
         dataset=torchvision.datasets.CIFAR10(root='./data', train=True, download=True),
@@ -124,11 +123,10 @@ if __name__ == "__main__":
     )
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 
-    # Define the loss and optimizer
+    # Loss en optimizer
     criterion = NTXentLoss().cuda()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    # Train the model
     train(model, train_loader, criterion, optimizer)
 
     torch.save(model.encoder.state_dict(), "simclr_encoder.pth")
