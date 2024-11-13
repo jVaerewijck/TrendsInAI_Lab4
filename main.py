@@ -4,7 +4,6 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 import torchvision.models as models
 from torch.utils.data import DataLoader, Dataset
-import numpy as np
 import torchvision
 
 print(torch.cuda.is_available())  # Geeft True als cuda werkt
@@ -63,7 +62,7 @@ class NTXentLoss(nn.Module):
         sim_j_i = torch.diag(sim, -batch_size)
         positive_pairs = torch.cat([sim_i_j, sim_j_i], dim=0)
 
-        # Mask to ignore the similarity of a sample with itself
+        # Mask om de gelijkheid met zichzelf te negeren
         mask = (~torch.eye(2 * batch_size, dtype=bool)).float().to(z.device)
         sim = sim * mask
         negative_pairs = sim.exp().sum(dim=1)
